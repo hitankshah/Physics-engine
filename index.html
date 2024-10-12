@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Physics Engine</title>
+    <style>
+        canvas {
+            background: #f0f0f0;
+            display: block;
+            margin: 0 auto;
+        }
+        #controls {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        button {
+            margin: 0 5px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button id="circle">Add Circle</button>
+        <button id="rectangle">Add Rectangle</button>
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Physics object classes
+        class Particle {
+            constructor(x, y, radius) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.vx = Math.random() * 4 - 2; // Random horizontal velocity
+                this.vy = Math.random() * 4 - 2; // Random vertical velocity
+                this.gravity = 0.2; // Gravity
+                this.friction = 0.99; // Friction
+            }
+
+            update() {
+                // Apply gravity
+                this.vy += this.gravity;
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Collision with floor
+                if (this.y + this.radius >= canvas.height) {
+                    this.y = canvas.height - this.radius;
+                    this.vy *= -this.friction; // Bounce back with friction
+                }
+
+                // Collision with walls
+                if (this.x + this.radius >= canvas.width || this.x - this.radius <= 0) {
+                    this.vx *= -1; // Reverse velocity
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'blue';
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        class Rectangle {
+            constructor(x, y, width, height) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.vx = Math.random() * 4 - 2; // Random horizontal velocity
+                this.vy = Math.random() * 4 - 2; // Random vertical velocity
+                this.gravity = 0.2; // Gravity
+                this.friction = 0.99; // Friction
+            }
+
+            update() {
+                // Apply gravity
+                this.vy += this.gravity;
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Collision with floor
+                if (this.y + this.height >= canvas.height) {
+                    this.y = canvas.height - this.height;
+                    this.vy *= -this.friction; // Bounce back with friction
+                }
+
+                // Collision with walls
+                if (this.x + this.width >= canvas.width || this.x <= 0) {
+                    this.vx *= -1; // Reverse velocity
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = 'red';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        }
+
+        const particles = [];
+        const rectangles = [];
+        let currentShape = 'circle'; // Default shape
+
+        // Shape selection buttons
+        document.getElementById('circle').onclick = () => {
+            currentShape = 'circle';
+        };
+
+        document.getElementById('rectangle').onclick = () => {
+            currentShape = 'rectangle';
+        };
+
+        // Click event to create shapes
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            if (currentShape === 'circle') {
+                particles.push(new Particle(x, y, 20));
+            } else if (currentShape === 'rectangle') {
+                rectangles.push(new Rectangle(x, y, 40, 20));
+            }
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            rectangles.forEach(rectangle => {
+                rectangle.update();
+                rectangle.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
